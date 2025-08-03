@@ -7,4 +7,5 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
 
     <include file="01-init-users.xml" relativeToChangelogFile="true"/>
+    <include file="02-add-username.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
