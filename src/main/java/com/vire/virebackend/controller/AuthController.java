@@ -1,5 +1,7 @@
 package com.vire.virebackend.controller;
 
+import com.vire.virebackend.dto.auth.LoginRequest;
+import com.vire.virebackend.dto.auth.LoginResponse;
 import com.vire.virebackend.dto.auth.RegisterRequest;
 import com.vire.virebackend.dto.auth.RegisterResponse;
 import com.vire.virebackend.service.AuthService;
@@ -21,7 +23,11 @@ public class AuthController {
 
     @PostMapping("register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        var response = authService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+    }
+
+    @PostMapping("login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 }

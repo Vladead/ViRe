@@ -1,6 +1,7 @@
 package com.vire.virebackend.security;
 
 import com.vire.virebackend.entity.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -27,26 +28,24 @@ public class JwtService {
     }
 
     public String generateToken(User user) {
-        var now = new Date();
-        var expires = new Date(now.getTime() + jwtExpiration);
-
         return Jwts.builder()
                 .subject(user.getId().toString())
-                .issuedAt(now)
-                .expiration(expires)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignKey(), Jwts.SIG.HS512)
                 .compact();
     }
 
     public UUID extractUserId(String token) {
-        return UUID.fromString(
-                Jwts.parser()
-                        .verifyWith(getSignKey())
-                        .build()
-                        .parseSignedClaims(token)
-                        .getPayload()
-                        .getSubject()
-        );
+        return UUID.fromString(extractAllClaims(token).getSubject());
+    }
+
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public Boolean isTokenValid(String token, User user) {
@@ -58,13 +57,6 @@ public class JwtService {
     }
 
     public Boolean isTokenExpired(String token) {
-        Date expiration = Jwts.parser()
-                .verifyWith(getSignKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration();
-
-        return expiration.before(new Date());
+        return extractAllClaims(token).getExpiration().before(new Date());
     }
 }
