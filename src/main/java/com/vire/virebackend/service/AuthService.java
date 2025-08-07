@@ -33,7 +33,7 @@ public class AuthService {
         userRepository.save(user);
 
         var token = jwtService.generateToken(user);
-        return new RegisterResponse(token);
+        return new RegisterResponse(user.getId(), token);
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -46,6 +46,6 @@ public class AuthService {
 
         var jwt = jwtService.generateToken(user);
 
-        return new LoginResponse(jwt);
+        return new LoginResponse(user.getId(), jwt);
     }
 }
