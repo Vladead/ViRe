@@ -15,6 +15,7 @@ public record UserDto(
         String email,
         List<String> roles
 ) {
+
     public static UserDto from(CustomUserDetails userDetails) {
         return new UserDto(
                 userDetails.getUser().getId(),
