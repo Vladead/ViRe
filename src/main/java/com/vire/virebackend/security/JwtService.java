@@ -1,11 +1,11 @@
 package com.vire.virebackend.security;
 
+import com.vire.virebackend.config.JwtProperties;
 import com.vire.virebackend.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -17,21 +17,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Value("${jwt.expiration}")
-    private Long jwtExpiration;
+    private final JwtProperties jwtProperties;
 
     private SecretKey getSignKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(User user) {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.expiration().toMillis()))
                 .signWith(getSignKey(), Jwts.SIG.HS512)
                 .compact();
     }
