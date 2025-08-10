@@ -4,11 +4,11 @@ services:
     container_name: vire-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: vire
+      POSTGRES_DB: ${DB_NAME:-vire}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${PG_HOST_PORT:-5432}:5432"
     volumes:
       - vire_db_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,6 +31,9 @@ services:
     ports:
       - "8080:8080"
     environment:
+      DB_NAME: ${DB_NAME:-vire}
+      DB_PORT: 5432
+      DB_HOST: db
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
