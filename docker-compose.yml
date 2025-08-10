@@ -34,7 +34,7 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-1h}
     depends_on:
       db:
         condition: service_healthy
