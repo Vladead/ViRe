@@ -3,6 +3,7 @@ services:
     image: postgres:17-alpine
     container_name: vire-postgres
     restart: unless-stopped
+    profiles: [ dev, "" ]
     environment:
       POSTGRES_DB: ${DB_NAME:-vire}
       POSTGRES_USER: ${DB_USERNAME}
@@ -28,9 +29,12 @@ services:
       dockerfile: Dockerfile
       target: runtime
     container_name: vire-backend
+    restart: unless-stopped
+    profiles: [ "" ]
     ports:
       - "8080:8080"
     environment:
+      SPRING_PROFILES_ACTIVE: prod
       DB_NAME: ${DB_NAME:-vire}
       DB_PORT: 5432
       DB_HOST: db
@@ -41,6 +45,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "--connect-timeout", "1", "--max-time", "2", "http://localhost:8081/actuator/health/readiness" ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 25s
     logging:
       driver: json-file
       options:
