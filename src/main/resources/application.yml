@@ -28,6 +28,8 @@ jwt:
   expiration: ${JWT_EXPIRATION:3600000}
 
 management:
+  server:
+    port: 8081
   endpoints:
     web:
       exposure:
