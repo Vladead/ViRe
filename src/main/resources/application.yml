@@ -38,3 +38,6 @@ management:
     health:
       probes:
         enabled: true
+
+problem:
+  base-uri: "https://vire.dev/problems/"
