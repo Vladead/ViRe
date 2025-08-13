@@ -1,4 +1,4 @@
-package com.vire.virebackend.security.handlers;
+package com.vire.virebackend.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vire.virebackend.problem.ProblemFactory;

@@ -30,7 +30,7 @@ public class ProblemFactory {
                 ProblemType.VALIDATION,
                 "Validation failed",
                 "One or more fields are invalid");
-        problemDetail.setProperty("error", errors);
+        problemDetail.setProperty("errors", errors);
 
         return problemDetail;
     }
