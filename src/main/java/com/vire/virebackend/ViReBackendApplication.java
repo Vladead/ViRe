@@ -1,12 +1,13 @@
 package com.vire.virebackend;
 
 import com.vire.virebackend.config.JwtProperties;
+import com.vire.virebackend.problem.ProblemProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
-@ConfigurationPropertiesScan(basePackageClasses = {JwtProperties.class})
+@ConfigurationPropertiesScan(basePackageClasses = {JwtProperties.class, ProblemProperties.class})
 public class ViReBackendApplication {
 
     public static void main(String[] args) {
