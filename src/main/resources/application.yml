@@ -23,6 +23,14 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/master.xml
 
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  error:
+    include-binding-errors: always
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:1h}
