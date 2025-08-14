@@ -49,3 +49,8 @@ management:
 
 problem:
   base-uri: https://vire.dev/problems/
+
+springdoc:
+  swagger-ui:
+    display-request-duration: true
+    display-operation-id: true
