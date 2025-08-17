@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 03-create-sessions-table
+      author: vladead
+      changes:
+        - createTable:
+            tableName: sessions
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: device_name
+                  type: varchar(100)
+              - column:
+                  name: ip
+                  type: varchar(45)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamp
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: sessions
+            baseColumnNames: user_id
+            constraintName: fk_sessions_user
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+        - createIndex:
+            indexName: idx_sessions_user_created
+            tableName: sessions
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: created_at
+
+        - createIndex:
+            indexName: idx_sessions_user_active
+            tableName: sessions
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: is_active

@@ -8,4 +8,5 @@
 
     <include file="01-init-users.xml" relativeToChangelogFile="true"/>
     <include file="02-add-username.xml" relativeToChangelogFile="true"/>
+    <include file="03-sessions-table.yaml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
