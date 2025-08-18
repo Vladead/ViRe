@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include:
+      file: 01-init-users.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 02-add-username.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 03-sessions-table.yaml
+      relativeToChangelogFile: true

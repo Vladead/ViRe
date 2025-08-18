@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 02-add-username-column
+      author: vladead
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+                    nullable: true
