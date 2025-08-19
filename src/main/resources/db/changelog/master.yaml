@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: 04-updated-at-sessions.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 05-add-version-users.yaml
+      relativeToChangelogFile: true

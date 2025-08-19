@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 05-add-version-column-users
+      author: vladead
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                  defaultValueNumeric: 0
