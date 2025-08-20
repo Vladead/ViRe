@@ -7,7 +7,8 @@ public enum ProblemType {
     AUTHENTICATION("authentication"),
     FORBIDDEN("forbidden"),
     NOT_FOUND("not-found"),
-    INTERNAL("internal");
+    INTERNAL("internal"),
+    CONFLICT("conflict");
 
     private final String slug;
 

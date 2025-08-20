@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 04-add-updated-at-column-sessions
+      author: vladead
+      changes:
+        - addColumn:
+            tableName: sessions
+            columns:
+              - column:
+                  name: updated_at
+                  type: timestamp
