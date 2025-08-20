@@ -77,4 +77,12 @@ public class ProblemFactory {
                 "Not found",
                 detail != null ? detail : "Resource not found");
     }
+
+    public ProblemDetail conflict(String detail) {
+        return of(
+                HttpStatus.CONFLICT,
+                ProblemType.CONFLICT,
+                "Conflict",
+                detail != null ? detail : "Resource modified concurrently");
+    }
 }

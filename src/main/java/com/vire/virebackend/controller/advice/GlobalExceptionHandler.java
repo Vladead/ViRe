@@ -2,6 +2,7 @@ package com.vire.virebackend.controller.advice;
 
 import com.vire.virebackend.problem.ProblemFactory;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({EntityNotFoundException.class, NoSuchElementException.class})
     public ProblemDetail handleNotFound(RuntimeException exception) {
         return problemFactory.notFound("Resource not found");
+    }
+
+    // 409 from @Version
+    @ExceptionHandler(OptimisticLockException.class)
+    public ProblemDetail handleConflict(OptimisticLockException exception) {
+        return problemFactory.conflict("Resource modified concurrently");
     }
 
     // 500 others
