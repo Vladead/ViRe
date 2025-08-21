@@ -37,11 +37,11 @@ jwt:
 
 management:
   server:
-    port: 8081
+    port: ${ACTUATOR_PORT:8081}
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, metrics
   endpoint:
     health:
       probes:
