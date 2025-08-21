@@ -1,6 +1,8 @@
 package com.vire.virebackend.security;
 
 import com.vire.virebackend.config.CorsProperties;
+import com.vire.virebackend.security.filter.JwtAuthenticationFilter;
+import com.vire.virebackend.security.filter.RequestSizeLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
