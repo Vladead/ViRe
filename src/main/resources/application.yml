@@ -37,15 +37,18 @@ jwt:
 
 management:
   server:
-    port: 8081
+    port: ${ACTUATOR_PORT:8081}
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, metrics
   endpoint:
     health:
       probes:
         enabled: true
+  info:
+    env:
+      enabled: true
 
 problem:
   base-uri: https://vire.dev/problems/
@@ -54,3 +57,13 @@ springdoc:
   swagger-ui:
     display-request-duration: true
     display-operation-id: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: ${APP_VERSION:0.0.1-SNAPSHOT}
+    description: ViRe backend service
+
+logging:
+  pattern:
+    level: "%5p [traceId=%X{traceId:-},requestId=%X{requestId:-}]"

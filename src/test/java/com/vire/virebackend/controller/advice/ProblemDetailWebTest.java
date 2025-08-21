@@ -7,7 +7,7 @@ import com.vire.virebackend.problem.ProblemFactory;
 import com.vire.virebackend.problem.ProblemProperties;
 import com.vire.virebackend.problem.ProblemTypeResolver;
 import com.vire.virebackend.repository.UserRepository;
-import com.vire.virebackend.security.JwtAuthenticationFilter;
+import com.vire.virebackend.security.filter.JwtAuthenticationFilter;
 import com.vire.virebackend.security.JwtService;
 import com.vire.virebackend.security.SecurityConfig;
 import com.vire.virebackend.security.handler.SecurityProblemHandlers;

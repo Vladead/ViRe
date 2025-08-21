@@ -1,6 +1,9 @@
 package com.vire.virebackend.security;
 
 import com.vire.virebackend.config.CorsProperties;
+import com.vire.virebackend.security.filter.JwtAuthenticationFilter;
+import com.vire.virebackend.security.filter.MdcLoggingFilter;
+import com.vire.virebackend.security.filter.RequestSizeLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +38,7 @@ public class SecurityConfig {
     private final AuthenticationEntryPoint authenticationEntryPoint;
     private final AccessDeniedHandler accessDeniedHandler;
     private final CorsProperties corsProperties;
+    private final MdcLoggingFilter mdcLoggingFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -68,6 +72,7 @@ public class SecurityConfig {
                                 .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny) // X-Frame-Options: DENY
                                 .referrerPolicy(rp -> rp.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER))
                 )
+                .addFilterBefore(mdcLoggingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(requestSizeLimitFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
