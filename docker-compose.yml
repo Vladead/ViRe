@@ -42,11 +42,12 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-1h}
+      ACTUATOR_PORT: ${ACTUATOR_PORT:-8081}
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "--connect-timeout", "1", "--max-time", "2", "http://localhost:8081/actuator/health/readiness" ]
+      test: [ "CMD", "curl", "-fsS", "--connect-timeout", "1", "--max-time", "2", "http://localhost:${ACTUATOR_PORT:-8081}/actuator/health/readiness" ]
       interval: 10s
       timeout: 3s
       retries: 6
