@@ -8,6 +8,8 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -22,6 +24,7 @@ import java.util.*;
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
     private final ProblemFactory problemFactory;
@@ -84,6 +87,7 @@ public class GlobalExceptionHandler {
     // 500 others
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleAny(Exception exception) {
+        // todo: extract to different RestControllerAdvice with lowest precedence
         var incidentId = UUID.randomUUID();
         log.error("Unhandled exception, incidentId={}", incidentId, exception);
 

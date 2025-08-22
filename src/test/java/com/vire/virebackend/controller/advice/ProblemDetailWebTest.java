@@ -7,12 +7,14 @@ import com.vire.virebackend.problem.ProblemFactory;
 import com.vire.virebackend.problem.ProblemProperties;
 import com.vire.virebackend.problem.ProblemTypeResolver;
 import com.vire.virebackend.repository.UserRepository;
+import com.vire.virebackend.security.filter.MdcLoggingFilter;
 import com.vire.virebackend.security.filter.JwtAuthenticationFilter;
 import com.vire.virebackend.security.JwtService;
 import com.vire.virebackend.security.SecurityConfig;
 import com.vire.virebackend.security.handler.SecurityProblemHandlers;
 import com.vire.virebackend.service.AuthService;
 import com.vire.virebackend.service.UserService;
+import com.vire.virebackend.config.CorsProperties;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -24,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.TestPropertySource;
 
 import java.net.URI;
 import java.util.Map;
@@ -45,6 +48,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ProblemDetailWebTest.TestErrorConfig.class,
         ProblemDetailWebTest.Mocks.class
 })
+@TestPropertySource(properties = {
+        "jwt.secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "jwt.expiration=1h"
+})
 class ProblemDetailWebTest {
 
     @Autowired
@@ -54,7 +61,11 @@ class ProblemDetailWebTest {
 
     @Test
     void register_invalidPayload_returns400_problemDetail() throws Exception {
-        var body = Map.of("email", "not-an-email", "password", "123");
+        var body = Map.of(
+                "username", "",
+                "email", "not-an-email",
+                "password", "123"
+        );
 
         mvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,6 +126,18 @@ class ProblemDetailWebTest {
                 UserRepository userRepository
         ) {
             return new JwtAuthenticationFilter(jwtService, userRepository);
+        }
+
+        @Bean
+        MdcLoggingFilter mdcLoggingFilter() {
+            return new MdcLoggingFilter();
+        }
+
+        @Bean
+        CorsProperties corsProperties() {
+            var p = new CorsProperties();
+            p.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+            return p;
         }
     }
 }
