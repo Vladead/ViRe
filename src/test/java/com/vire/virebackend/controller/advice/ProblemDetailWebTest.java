@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vire.virebackend.config.CorsProperties;
 import com.vire.virebackend.controller.AuthController;
 import com.vire.virebackend.controller.UserController;
+import com.vire.virebackend.entity.User;
 import com.vire.virebackend.problem.ProblemFactory;
 import com.vire.virebackend.problem.ProblemProperties;
 import com.vire.virebackend.problem.ProblemTypeResolver;
@@ -32,6 +33,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -64,6 +67,12 @@ class ProblemDetailWebTest {
 
     @Autowired
     AuthService authService;
+
+    @Autowired
+    JwtService jwtService;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Test
     void register_invalidPayload_returns400_problemDetail() throws Exception {
@@ -126,6 +135,27 @@ class ProblemDetailWebTest {
                         .content(om.writeValueAsString(body)))
                 .andExpect(status().isConflict())
                 .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")));
+    }
+
+    @Test
+    void me_withValidToken_returns200() throws Exception {
+        var userId = UUID.randomUUID();
+        var token = "valid_jwt_token";
+
+        Mockito.when(jwtService.extractUserId(token)).thenReturn(userId);
+
+        var user = User.builder()
+                .username("john")
+                .email("john@example.com")
+                .password("$2a$10$hash")
+                .build();
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
+
+        mvc.perform(get("/api/user/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.roles").isArray());
     }
 
     @TestConfiguration
