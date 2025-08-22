@@ -3,10 +3,12 @@ package com.vire.virebackend.controller.advice;
 import com.vire.virebackend.problem.ProblemFactory;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -56,9 +58,23 @@ public class GlobalExceptionHandler {
         return problemFactory.notFound("Resource not found");
     }
 
+    // 409 unique constraints (e.g. duplicate email/username)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException exception, HttpServletResponse response) {
+        response.setHeader(
+                "WWW-Authenticate",
+                "Bearer realm=\"ViRe\", error=\"conflict\", error_description=\"Unique constraint violated\""
+        );
+        return problemFactory.conflict("Unique constraint violated");
+    }
+
     // 409 from @Version
     @ExceptionHandler(OptimisticLockException.class)
-    public ProblemDetail handleConflict(OptimisticLockException exception) {
+    public ProblemDetail handleConflict(OptimisticLockException exception, HttpServletResponse response) {
+        response.setHeader(
+                "WWW-Authenticate",
+                "Bearer realm=\"vire\", error=\"conflict\", error_description=\"Resource modified concurrently\""
+        );
         return problemFactory.conflict("Resource modified concurrently");
     }
 
