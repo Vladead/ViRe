@@ -24,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.TestPropertySource;
@@ -94,7 +95,10 @@ class ProblemDetailWebTest {
 
     @Test
     void login_wrongPassword_returns401_problemDetail() throws Exception {
-        var body = Map.of("email", "a@b.c", "password", "wrongpass");
+        var body = Map.of(
+                "email", "a@b.c",
+                "password", "wrongpass"
+        );
 
         Mockito.when(authService.login(Mockito.any()))
                 .thenThrow(new BadCredentialsException("Bad creds"));
@@ -103,6 +107,24 @@ class ProblemDetailWebTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(body)))
                 .andExpect(status().isUnauthorized())
+                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")));
+    }
+
+    @Test
+    void register_duplicateEmail_returns409_problemDetail() throws Exception {
+        var body = Map.of(
+                "username", "user1",
+                "email", "a@b.c",
+                "password", "12345678"
+        );
+
+        Mockito.when(authService.register(Mockito.any()))
+                .thenThrow(new DataIntegrityViolationException("duplicate"));
+
+        mvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(om.writeValueAsString(body)))
+                .andExpect(status().isConflict())
                 .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")));
     }
 
