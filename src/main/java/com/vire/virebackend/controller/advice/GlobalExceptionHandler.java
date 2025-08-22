@@ -3,12 +3,17 @@ package com.vire.virebackend.controller.advice;
 import com.vire.virebackend.problem.ProblemFactory;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +24,7 @@ import java.util.*;
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
     private final ProblemFactory problemFactory;
@@ -50,10 +56,26 @@ public class GlobalExceptionHandler {
         return problemFactory.badRequest("Malformed or invalid request");
     }
 
+    // 401 authentication failures outside Security Filter (e.g. wrong password)
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuth(AuthenticationException exception, HttpServletResponse response) {
+        response.setHeader(
+                "WWW-Authenticate",
+                "Bearer realm=\"ViRe\", error=\"unauthorized\", error_description=\"Authentication required or failed\""
+        );
+        return problemFactory.unauthorized();
+    }
+
     // 404 not found
     @ExceptionHandler({EntityNotFoundException.class, NoSuchElementException.class})
     public ProblemDetail handleNotFound(RuntimeException exception) {
         return problemFactory.notFound("Resource not found");
+    }
+
+    // 409 unique constraints (e.g. duplicate email/username)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException exception) {
+        return problemFactory.conflict("Unique constraint violated");
     }
 
     // 409 from @Version
@@ -65,6 +87,7 @@ public class GlobalExceptionHandler {
     // 500 others
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleAny(Exception exception) {
+        // todo: extract to different RestControllerAdvice with lowest precedence
         var incidentId = UUID.randomUUID();
         log.error("Unhandled exception, incidentId={}", incidentId, exception);
 
