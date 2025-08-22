@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,6 +53,16 @@ public class GlobalExceptionHandler {
         return problemFactory.badRequest("Malformed or invalid request");
     }
 
+    // 401 authentication failures outside Security Filter (e.g. wrong password)
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuth(AuthenticationException exception, HttpServletResponse response) {
+        response.setHeader(
+                "WWW-Authenticate",
+                "Bearer realm=\"ViRe\", error=\"unauthorized\", error_description=\"Authentication required or failed\""
+        );
+        return problemFactory.unauthorized();
+    }
+
     // 404 not found
     @ExceptionHandler({EntityNotFoundException.class, NoSuchElementException.class})
     public ProblemDetail handleNotFound(RuntimeException exception) {
@@ -60,21 +71,13 @@ public class GlobalExceptionHandler {
 
     // 409 unique constraints (e.g. duplicate email/username)
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException exception, HttpServletResponse response) {
-        response.setHeader(
-                "WWW-Authenticate",
-                "Bearer realm=\"ViRe\", error=\"conflict\", error_description=\"Unique constraint violated\""
-        );
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException exception) {
         return problemFactory.conflict("Unique constraint violated");
     }
 
     // 409 from @Version
     @ExceptionHandler(OptimisticLockException.class)
-    public ProblemDetail handleConflict(OptimisticLockException exception, HttpServletResponse response) {
-        response.setHeader(
-                "WWW-Authenticate",
-                "Bearer realm=\"vire\", error=\"conflict\", error_description=\"Resource modified concurrently\""
-        );
+    public ProblemDetail handleConflict(OptimisticLockException exception) {
         return problemFactory.conflict("Resource modified concurrently");
     }
 
