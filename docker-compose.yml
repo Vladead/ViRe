@@ -43,6 +43,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-1h}
       ACTUATOR_PORT: ${ACTUATOR_PORT:-8081}
+      APP_VERSION: ${APP_VERSION:-0.0.1-SNAPSHOT}
     depends_on:
       db:
         condition: service_healthy
