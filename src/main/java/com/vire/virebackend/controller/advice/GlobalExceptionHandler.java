@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.*;
 
-@Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -82,15 +80,5 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(OptimisticLockException.class)
     public ProblemDetail handleConflict(OptimisticLockException exception) {
         return problemFactory.conflict("Resource modified concurrently");
-    }
-
-    // 500 others
-    @ExceptionHandler(Exception.class)
-    public ProblemDetail handleAny(Exception exception) {
-        // todo: extract to different RestControllerAdvice with lowest precedence
-        var incidentId = UUID.randomUUID();
-        log.error("Unhandled exception, incidentId={}", incidentId, exception);
-
-        return problemFactory.internal(incidentId);
     }
 }
