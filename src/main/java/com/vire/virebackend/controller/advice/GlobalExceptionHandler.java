@@ -12,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -62,6 +63,12 @@ public class GlobalExceptionHandler {
                 "Bearer realm=\"ViRe\", error=\"unauthorized\", error_description=\"Authentication required or failed\""
         );
         return problemFactory.unauthorized();
+    }
+
+    // 403 from method security (@PreAuthorize, etc.)
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ProblemDetail handleAuthorizationDenied(AuthorizationDeniedException exception) {
+        return problemFactory.forbidden();
     }
 
     // 404 not found

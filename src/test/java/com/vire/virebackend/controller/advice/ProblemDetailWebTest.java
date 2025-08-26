@@ -27,35 +27,49 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = {
         AuthController.class,
-        UserController.class
+        UserController.class,
+        ProblemDetailWebTest.ErrorThrowingController.class,
+        ProblemDetailWebTest.AdminOnlyController.class
 })
 @Import({
         GlobalExceptionHandler.class,
+        FallbackExceptionHandler.class,
         SecurityProblemHandlers.class,
         SecurityConfig.class,
         ProblemFactory.class,
         ProblemTypeResolver.class,
         ProblemDetailWebTest.TestErrorConfig.class,
-        ProblemDetailWebTest.Mocks.class
+        ProblemDetailWebTest.Mocks.class,
+        ProblemDetailWebTest.MethodSecurityTestConfig.class,
+        ProblemDetailWebTest.ErrorThrowingController.class,
+        ProblemDetailWebTest.AdminOnlyController.class
 })
 @TestPropertySource(properties = {
         "jwt.secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "jwt.expiration=1h"
+        "jwt.expiration=1h",
+        "spring.mvc.problemdetails.enabled=true"
 })
 class ProblemDetailWebTest {
 
@@ -99,7 +113,8 @@ class ProblemDetailWebTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
                 .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.status").value(401));
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/authentication"));
     }
 
     @Test
@@ -116,7 +131,9 @@ class ProblemDetailWebTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(body)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")));
+                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
+                .andExpect(header().string("WWW-Authenticate", Matchers.containsString("Bearer realm=\"ViRe\"")))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/authentication"));
     }
 
     @Test
@@ -156,6 +173,49 @@ class ProblemDetailWebTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("john@example.com"))
                 .andExpect(jsonPath("$.roles").isArray());
+    }
+
+    @Test
+    void notFound_nonExistingEndpoint_returns404_problemDetail() throws Exception {
+        mvc.perform(get("/api/does-not-exist").with(user("john")))
+                .andExpect(status().isNotFound())
+                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void forbidden_insufficientRole_returns403_problemDetail() throws Exception {
+        mvc.perform(get("/api/test/admin-only").with(user("john").roles("USER")))
+                .andExpect(status().isForbidden())
+                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
+                .andExpect(jsonPath("$.title").value("Forbidden"))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/forbidden"));
+    }
+
+    @Test
+    void internalServerError_runtimeException_returns500_problemDetail_withIncidentId() throws Exception {
+        mvc.perform(get("/api/test/error").with(user("john")))
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
+                .andExpect(jsonPath("$.title").value("Internal server error"))
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/internal"))
+                .andExpect(jsonPath("$.incidentId").exists());
+    }
+
+    @Test
+    void register_malformedJson_returns400_problemDetail() throws Exception {
+        var malformedJson = "{"; // invalid JSON
+
+        mvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(malformedJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
+                .andExpect(jsonPath("$.title").value("Bad request"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/bad-request"));
     }
 
     @TestConfiguration
@@ -209,6 +269,30 @@ class ProblemDetailWebTest {
             var p = new CorsProperties();
             p.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
             return p;
+        }
+    }
+
+    @TestConfiguration
+    @EnableMethodSecurity
+    public static class MethodSecurityTestConfig {
+    }
+
+    @RestController
+    @RequestMapping("/api/test")
+    public static class ErrorThrowingController {
+        @GetMapping("/error")
+        public ResponseEntity<Void> error() {
+            throw new RuntimeException("boom");
+        }
+    }
+
+    @RestController
+    @RequestMapping("/api/test")
+    public static class AdminOnlyController {
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping("/admin-only")
+        public ResponseEntity<String> adminOnly() {
+            return ResponseEntity.ok("ok");
         }
     }
 }
