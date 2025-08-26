@@ -113,7 +113,8 @@ class ProblemDetailWebTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
                 .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.status").value(401));
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/authentication"));
     }
 
     @Test
@@ -131,7 +132,8 @@ class ProblemDetailWebTest {
                         .content(om.writeValueAsString(body)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
-                .andExpect(header().string("WWW-Authenticate", Matchers.containsString("Bearer realm=\"ViRe\"")));
+                .andExpect(header().string("WWW-Authenticate", Matchers.containsString("Bearer realm=\"ViRe\"")))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/authentication"));
     }
 
     @Test
@@ -187,7 +189,8 @@ class ProblemDetailWebTest {
                 .andExpect(status().isForbidden())
                 .andExpect(header().string("Content-Type", Matchers.containsString("application/problem+json")))
                 .andExpect(jsonPath("$.title").value("Forbidden"))
-                .andExpect(jsonPath("$.status").value(403));
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.type").value("https://vire.dev/problems/forbidden"));
     }
 
     @Test
