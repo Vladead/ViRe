@@ -17,3 +17,6 @@ databaseChangeLog:
   - include:
       file: 06-create-roles-and-user-roles-tables.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 07-seed-roles.yaml
+      relativeToChangelogFile: true
