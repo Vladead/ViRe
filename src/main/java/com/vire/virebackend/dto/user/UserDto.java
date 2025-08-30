@@ -1,5 +1,7 @@
 package com.vire.virebackend.dto.user;
 
+import com.vire.virebackend.entity.Role;
+import com.vire.virebackend.entity.User;
 import com.vire.virebackend.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -22,6 +24,16 @@ public record UserDto(
                 userDetails.getUsername(),
                 userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
+                        .toList()
+        );
+    }
+
+    public static UserDto from(User user) {
+        return new UserDto(
+                user.getId(),
+                user.getEmail(),
+                user.getRoles().stream()
+                        .map(Role::getName)
                         .toList()
         );
     }
