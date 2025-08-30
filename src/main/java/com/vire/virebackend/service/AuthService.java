@@ -5,6 +5,7 @@ import com.vire.virebackend.dto.auth.LoginResponse;
 import com.vire.virebackend.dto.auth.RegisterRequest;
 import com.vire.virebackend.dto.auth.RegisterResponse;
 import com.vire.virebackend.entity.User;
+import com.vire.virebackend.repository.RoleRepository;
 import com.vire.virebackend.repository.UserRepository;
 import com.vire.virebackend.security.CustomUserDetails;
 import com.vire.virebackend.security.JwtService;
@@ -22,6 +23,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
 
     public RegisterResponse register(RegisterRequest request) {
         var user = User.builder()
@@ -29,6 +31,10 @@ public class AuthService {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .build();
+
+        var userRole = roleRepository.findByName("USER")
+                        .orElseThrow(() -> new IllegalStateException("Default role USER not found"));
+        user.getRoles().add(userRole);
 
         userRepository.save(user);
 
