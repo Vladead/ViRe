@@ -1,6 +1,7 @@
 package com.vire.virebackend.security;
 
 import com.vire.virebackend.config.JwtProperties;
+import com.vire.virebackend.entity.Role;
 import com.vire.virebackend.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -26,6 +27,7 @@ public class JwtService {
     public String generateToken(User user) {
         return Jwts.builder()
                 .subject(user.getId().toString())
+                .claim("roles", user.getRoles().stream().map(Role::getName).toList())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.expiration().toMillis()))
                 .signWith(getSignKey(), Jwts.SIG.HS512)

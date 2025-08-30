@@ -2,8 +2,7 @@ package com.vire.virebackend.security;
 
 import com.vire.virebackend.entity.User;
 import lombok.Getter;
-
-import java.util.List;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Getter
 public class CustomUserDetails extends org.springframework.security.core.userdetails.User {
@@ -18,7 +17,9 @@ public class CustomUserDetails extends org.springframework.security.core.userdet
                 true,
                 true,
                 true,
-                List.of() // there is no roles for now
+                user.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                        .toList()
         );
         this.user = user;
     }
