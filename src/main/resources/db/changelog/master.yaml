@@ -20,3 +20,6 @@ databaseChangeLog:
   - include:
       file: 07-seed-roles.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 08-create-plans-table.yaml
+      relativeToChangelogFile: true
