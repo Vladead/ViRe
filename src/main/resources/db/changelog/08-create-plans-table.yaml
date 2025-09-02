@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 08-create-plans-table
+      author: vladead
+      changes:
+        - createTable:
+            tableName: plans
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: duration_days
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+        - addUniqueConstraint:
+            tableName: plans
+            columnNames: name
+            constraintName: uq_plans_name
+      rollback:
+        - dropTable:
+            tableName: plans
+            cascadeConstraints: true

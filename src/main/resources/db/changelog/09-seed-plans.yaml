@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: 09-seed-plans
+      author: vladead
+      preConditions:
+        - dbms:
+            type: postgresql
+      changes:
+        - insert:
+            tableName: plans
+            columns:
+              - column:
+                  name: id
+                  value: "11111111-3111-4111-5111-111111111111"
+              - column:
+                  name: name
+                  value: "Month"
+              - column:
+                  name: price
+                  valueNumeric: 9.99
+              - column:
+                  name: duration_days
+                  valueNumeric: 30
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP
+        - insert:
+            tableName: plans
+            columns:
+              - column:
+                  name: id
+                  value: "22222222-3222-4222-5222-222222222222"
+              - column:
+                  name: name
+                  value: "6 Months"
+              - column:
+                  name: price
+                  valueNumeric: 49.99
+              - column:
+                  name: duration_days
+                  valueNumeric: 180
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP
+        - insert:
+            tableName: plans
+            columns:
+              - column:
+                  name: id
+                  value: "33333333-3333-4333-5333-333333333333"
+              - column:
+                  name: name
+                  value: "Year"
+              - column:
+                  name: price
+                  valueNumeric: 89.99
+              - column:
+                  name: duration_days
+                  valueNumeric: 365
+              - column:
+                  name: created_at
+                  valueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  valueComputed: CURRENT_TIMESTAMP
+      rollback:
+        - delete:
+            tableName: plans
+            where: "id IN ('11111111-3111-4111-5111-111111111111', '22222222-3222-4222-5222-222222222222', '33333333-3333-4333-5333-333333333333')"
