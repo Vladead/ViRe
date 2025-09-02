@@ -2,6 +2,7 @@ package com.vire.virebackend.controller;
 
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
+import com.vire.virebackend.dto.plan.UpdatePlanRequest;
 import com.vire.virebackend.dto.user.UserDto;
 import com.vire.virebackend.service.PlanService;
 import com.vire.virebackend.service.UserService;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("api/admin")
@@ -44,5 +46,14 @@ public class AdminController {
                 .toUri();
 
         return ResponseEntity.created(location).body(created);
+    }
+
+    @Operation(summary = "Update an existing plan")
+    @PutMapping("plans/{id}")
+    public ResponseEntity<PlanDto> update(
+            @Valid @RequestBody UpdatePlanRequest request,
+            @PathVariable UUID id
+    ) {
+        return ResponseEntity.ok(planService.updatePlan(request, id));
     }
 }

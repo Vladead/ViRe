@@ -6,8 +6,8 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 
-@Schema(description = "Create new plan request")
-public record CreatePlanRequest(
+@Schema(description = "Update an existing plan request")
+public record UpdatePlanRequest(
         @JsonProperty("name")
         @NotBlank
         @Size(max = 64)

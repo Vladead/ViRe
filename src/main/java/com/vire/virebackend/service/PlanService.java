@@ -2,6 +2,7 @@ package com.vire.virebackend.service;
 
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
+import com.vire.virebackend.dto.plan.UpdatePlanRequest;
 import com.vire.virebackend.entity.Plan;
 import com.vire.virebackend.mapper.PlanMapper;
 import com.vire.virebackend.repository.PlanRepository;
@@ -41,10 +42,26 @@ public class PlanService {
         }
 
         var plan = Plan.builder()
-                .name(request.name())
+                .name(request.name().trim())
                 .price(request.price())
                 .durationDays(request.durationDays())
                 .build();
+
+        return PlanMapper.toDto(planRepository.save(plan));
+    }
+
+    @Transactional
+    public PlanDto updatePlan(UpdatePlanRequest request, UUID id) {
+        var plan = planRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
+
+        if (planRepository.existsByNameIgnoreCaseAndIdNot(request.name(), id)) {
+            throw new DataIntegrityViolationException("Plan name already exists");
+        }
+
+        plan.setName(request.name().trim());
+        plan.setPrice(request.price());
+        plan.setDurationDays(request.durationDays());
 
         return PlanMapper.toDto(planRepository.save(plan));
     }

@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface PlanRepository extends JpaRepository<Plan, UUID> {
 
     Boolean existsByNameIgnoreCase(String name);
+
+    Boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 }
