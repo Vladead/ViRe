@@ -3,11 +3,13 @@ package com.vire.virebackend.service;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.mapper.PlanMapper;
 import com.vire.virebackend.repository.PlanRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,5 +21,13 @@ public class PlanService {
     public List<PlanDto> getAllPlans() {
         return planRepository.findAll()
                 .stream().map(PlanMapper::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PlanDto getPlan(UUID id) {
+        var plan = planRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
+
+        return PlanMapper.toDto(plan);
     }
 }
