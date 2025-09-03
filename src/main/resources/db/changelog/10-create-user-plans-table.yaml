@@ -1,0 +1,78 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10-create-user-plans-table
+      author: vladead
+      changes:
+        - createTable:
+            tableName: user_plans
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: plan_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: user_plans
+            baseColumnNames: user_id
+            constraintName: fk_user_plans_user
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: user_plans
+            baseColumnNames: plan_id
+            constraintName: fk_user_plans_plan
+            referencedTableName: plans
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            indexName: idx_user_plans_user_start
+            tableName: user_plans
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: start_date
+        - createIndex:
+            indexName: idx_user_plans_user
+            tableName: user_plans
+            columns:
+              - column:
+                  name: user_id
+      rollback:
+        - dropTable:
+            tableName: user_plans
+            cascadeConstraints: true
