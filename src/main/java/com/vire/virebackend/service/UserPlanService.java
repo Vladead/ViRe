@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -35,5 +36,11 @@ public class UserPlanService {
                 .build();
 
         return UserPlanMapper.toDto(userPlanRepository.save(userPlan));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserPlanDto> userSubscriptions(UUID userId) {
+        return userPlanRepository.findByUserIdOrderByStartDateDesc(userId)
+                .stream().map(UserPlanMapper::toDto).toList();
     }
 }
