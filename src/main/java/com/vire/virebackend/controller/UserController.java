@@ -1,7 +1,9 @@
 package com.vire.virebackend.controller;
 
+import com.vire.virebackend.dto.plan.UserPlanDto;
 import com.vire.virebackend.dto.user.UserDto;
 import com.vire.virebackend.security.CustomUserDetails;
+import com.vire.virebackend.service.UserPlanService;
 import com.vire.virebackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/user")
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final UserPlanService userPlanService;
 
     @Operation(
             summary = "Get current user info from JWT",
@@ -37,5 +42,11 @@ public class UserController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(UserDto.from(userDetails));
+    }
+
+    @Operation(summary = "Get current user plans")
+    @GetMapping("plans")
+    public ResponseEntity<List<UserPlanDto>> getCurrentUserPlans(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(userPlanService.userSubscriptions(userDetails.getUser().getId()));
     }
 }
