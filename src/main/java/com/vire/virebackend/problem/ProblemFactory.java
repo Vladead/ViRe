@@ -46,6 +46,20 @@ public class ProblemFactory {
         return problemDetail;
     }
 
+    public ProblemDetail internal(String incidentId) {
+        var problemDetail = of(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ProblemType.INTERNAL,
+                "Internal server error",
+                "If the problem persists, contact support and mention incidentId");
+        problemDetail.setProperty(
+                "incidentId",
+                (incidentId != null && !incidentId.isBlank()) ? incidentId : UUID.randomUUID()
+        );
+
+        return problemDetail;
+    }
+
     public ProblemDetail badRequest(String detail) {
         return of(
                 HttpStatus.BAD_REQUEST,
