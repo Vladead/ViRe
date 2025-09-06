@@ -5,6 +5,7 @@ import com.vire.virebackend.config.CorsProperties;
 import com.vire.virebackend.controller.AuthController;
 import com.vire.virebackend.controller.UserController;
 import com.vire.virebackend.entity.User;
+import com.vire.virebackend.entity.Role;
 import com.vire.virebackend.problem.ProblemFactory;
 import com.vire.virebackend.problem.ProblemProperties;
 import com.vire.virebackend.problem.ProblemTypeResolver;
@@ -166,6 +167,9 @@ class ProblemDetailWebTest {
                 .email("john@example.com")
                 .password("$2a$10$hash")
                 .build();
+        var role = new Role();
+        role.setName("USER");
+        user.getRoles().add(role);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
 
@@ -218,6 +222,29 @@ class ProblemDetailWebTest {
                 .andExpect(jsonPath("$.type").value("https://vire.dev/problems/bad-request"));
     }
 
+    @Test
+    void me_withValidToken_includesCorrelationHeaders() throws Exception {
+        var userId = UUID.randomUUID();
+        var token = "valid_jwt_token";
+
+        Mockito.when(jwtService.extractUserId(token)).thenReturn(userId);
+        var user = User.builder()
+                .username("john")
+                .email("john@example.com")
+                .password("valid8hash$")
+                .build();
+        var role = new Role();
+        role.setName("USER");
+        user.getRoles().add(role);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
+
+        mvc.perform(get("/api/user/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())));
+    }
+
     @TestConfiguration
     @EnableConfigurationProperties(ProblemProperties.class)
     static class TestErrorConfig {
@@ -239,6 +266,11 @@ class ProblemDetailWebTest {
         @Bean
         UserService userService() {
             return Mockito.mock(UserService.class);
+        }
+
+        @Bean
+        com.vire.virebackend.service.UserPlanService userPlanService() {
+            return Mockito.mock(com.vire.virebackend.service.UserPlanService.class);
         }
 
         @Bean
