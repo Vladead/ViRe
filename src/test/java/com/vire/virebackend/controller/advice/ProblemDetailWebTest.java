@@ -245,6 +245,25 @@ class ProblemDetailWebTest {
                 .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())));
     }
 
+    @Test
+    void badRequest_includesHeaders_noIncidentId() throws Exception {
+        var malformedJson = "{";
+        mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(malformedJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(jsonPath("$.incidentId").doesNotExist());
+    }
+
+    @Test
+    void unauthorized_includesHeaders_noIncidentId() throws Exception {
+        mvc.perform(get("/api/user/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(jsonPath("$.incidentId").doesNotExist());
+    }
+
     @TestConfiguration
     @EnableConfigurationProperties(ProblemProperties.class)
     static class TestErrorConfig {
