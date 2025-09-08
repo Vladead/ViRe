@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vire.virebackend.config.CorsProperties;
 import com.vire.virebackend.controller.AuthController;
 import com.vire.virebackend.controller.UserController;
+import com.vire.virebackend.entity.Role;
 import com.vire.virebackend.entity.User;
 import com.vire.virebackend.problem.ProblemFactory;
 import com.vire.virebackend.problem.ProblemProperties;
@@ -17,6 +18,7 @@ import com.vire.virebackend.security.handler.SecurityProblemHandlers;
 import com.vire.virebackend.service.AuthService;
 import com.vire.virebackend.service.UserService;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,6 +168,9 @@ class ProblemDetailWebTest {
                 .email("john@example.com")
                 .password("$2a$10$hash")
                 .build();
+        var role = new Role();
+        role.setName("USER");
+        user.getRoles().add(role);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
 
@@ -218,6 +223,80 @@ class ProblemDetailWebTest {
                 .andExpect(jsonPath("$.type").value("https://vire.dev/problems/bad-request"));
     }
 
+    @Test
+    void me_withValidToken_includesCorrelationHeaders() throws Exception {
+        var userId = UUID.randomUUID();
+        var token = "valid_jwt_token";
+
+        Mockito.when(jwtService.extractUserId(token)).thenReturn(userId);
+        var user = User.builder()
+                .username("john")
+                .email("john@example.com")
+                .password("valid8hash$")
+                .build();
+        var role = new Role();
+        role.setName("USER");
+        user.getRoles().add(role);
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
+
+        mvc.perform(get("/api/user/me").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())));
+    }
+
+    @Test
+    void badRequest_includesHeaders_noIncidentId() throws Exception {
+        var malformedJson = "{";
+        mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(malformedJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(jsonPath("$.incidentId").doesNotExist());
+    }
+
+    @Test
+    void unauthorized_includesHeaders_noIncidentId() throws Exception {
+        mvc.perform(get("/api/user/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(jsonPath("$.incidentId").doesNotExist());
+    }
+
+    @Test
+    void forbidden_includesHeaders_noIncidentId() throws Exception {
+        mvc.perform(get("/api/test/admin-only").with(user("john").roles("USER")))
+                .andExpect(status().isForbidden())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(jsonPath("$.incidentId").doesNotExist());
+    }
+
+    @Test
+    void notFound_includesHeaders_noIncidentId() throws Exception {
+        mvc.perform(get("/api/does-not-exist").with(user("john")))
+                .andExpect(status().isNotFound())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(jsonPath("$.incidentId").doesNotExist());
+    }
+
+    @Test
+    void internalError_includesHeaders_andIncidentIdEqualsTraceId() throws Exception {
+        var result = mvc.perform(get("/api/test/error").with(user("john")))
+                .andExpect(status().isInternalServerError())
+                .andExpect(header().string("X-Trace-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andExpect(header().string("X-Request-Id", Matchers.not(Matchers.isEmptyOrNullString())))
+                .andReturn();
+
+        var xTraceId = result.getResponse().getHeader("X-Trace-Id");
+        var body = result.getResponse().getContentAsString();
+        var node = om.readTree(body);
+        Assertions.assertEquals(xTraceId, node.get("incidentId").asText());
+    }
+
     @TestConfiguration
     @EnableConfigurationProperties(ProblemProperties.class)
     static class TestErrorConfig {
@@ -239,6 +318,11 @@ class ProblemDetailWebTest {
         @Bean
         UserService userService() {
             return Mockito.mock(UserService.class);
+        }
+
+        @Bean
+        com.vire.virebackend.service.UserPlanService userPlanService() {
+            return Mockito.mock(com.vire.virebackend.service.UserPlanService.class);
         }
 
         @Bean

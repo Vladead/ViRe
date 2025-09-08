@@ -110,7 +110,9 @@ public class SecurityConfig {
         config.setMaxAge(Duration.ofHours(1));
 
         config.setExposedHeaders(List.of(
-                "Location"
+                "Location",
+                "X-Trace-Id",
+                "X-Request-Id"
         ));
 
         // link configuration to all endpoints
