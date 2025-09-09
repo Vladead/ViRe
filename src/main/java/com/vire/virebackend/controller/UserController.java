@@ -2,6 +2,7 @@ package com.vire.virebackend.controller;
 
 import com.vire.virebackend.dto.plan.UserPlanDto;
 import com.vire.virebackend.dto.user.UserDto;
+import com.vire.virebackend.mapper.UserMapper;
 import com.vire.virebackend.security.CustomUserDetails;
 import com.vire.virebackend.service.UserPlanService;
 import com.vire.virebackend.service.UserService;
@@ -41,7 +42,7 @@ public class UserController {
     public ResponseEntity<UserDto> getCurrentUser(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(UserDto.from(userDetails));
+        return ResponseEntity.ok(UserMapper.toDto(userDetails));
     }
 
     @Operation(summary = "Get current user plans")
