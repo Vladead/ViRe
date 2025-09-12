@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 11-jti-user-agent-sessions
+      author: vladead
+      changes:
+        - addColumn:
+            tableName: sessions
+            columns:
+              - column:
+                  name: jti
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_agent
+                  type: varchar(255)
+              - column:
+                  name: last_activity_at
+                  type: timestamp
+        - createIndex:
+            tableName: sessions
+            indexName: idx_sessions_jti
+            unique: true
+            columns:
+              - column:
+                  name: jti
+      rollback:
+        - dropIndex:
+            indexName: idx_sessions_jti
+            tableName: sessions
+        - dropColumn:
+            tableName: sessions
+            columnName: last_activity_at
+        - dropColumn:
+            tableName: sessions
+            columnName: user_agent
+        - dropColumn:
+            tableName: sessions
+            columnName: jti
