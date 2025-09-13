@@ -4,16 +4,23 @@ import com.vire.virebackend.dto.auth.LoginRequest;
 import com.vire.virebackend.dto.auth.LoginResponse;
 import com.vire.virebackend.dto.auth.RegisterRequest;
 import com.vire.virebackend.dto.auth.RegisterResponse;
+import com.vire.virebackend.entity.Session;
 import com.vire.virebackend.entity.User;
 import com.vire.virebackend.repository.RoleRepository;
+import com.vire.virebackend.repository.SessionRepository;
 import com.vire.virebackend.repository.UserRepository;
 import com.vire.virebackend.security.CustomUserDetails;
 import com.vire.virebackend.security.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +31,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
+    private final SessionRepository sessionRepository;
 
-    public RegisterResponse register(RegisterRequest request) {
+    @Transactional
+    public RegisterResponse register(RegisterRequest request, HttpServletRequest http) {
         var user = User.builder()
                 .username(request.username())
                 .email(request.email())
@@ -38,11 +47,28 @@ public class AuthService {
 
         userRepository.save(user);
 
-        var token = jwtService.generateToken(user);
+        var jti = UUID.randomUUID();
+        var userAgent = http.getHeader("User-Agent");
+
+        var session = Session.builder()
+                .user(user)
+                .jti(jti)
+                .isActive(true)
+                .userAgent(userAgent != null ? userAgent : "")
+                .ip(http.getRemoteAddr())
+                .deviceName("Unknown device") // todo: determine by User-Agent
+                .lastActivityAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(30))
+                .build();
+
+        sessionRepository.save(session);
+
+        var token = jwtService.generateToken(user, jti);
         return new RegisterResponse(user.getId(), token);
     }
 
-    public LoginResponse login(LoginRequest request) {
+    @Transactional
+    public LoginResponse login(LoginRequest request, HttpServletRequest http) {
         var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
@@ -50,8 +76,23 @@ public class AuthService {
         var userDetails = (CustomUserDetails) authentication.getPrincipal();
         var user = userDetails.getUser();
 
-        var jwt = jwtService.generateToken(user);
+        var jti = UUID.randomUUID();
+        var userAgent = http.getHeader("User-Agent");
 
+        var session = Session.builder()
+                .user(user)
+                .jti(jti)
+                .isActive(true)
+                .userAgent(userAgent != null ? userAgent : "")
+                .ip(http.getRemoteAddr())
+                .deviceName("Unknown device") // todo: determine by User-Agent
+                .lastActivityAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(30))
+                .build();
+
+        sessionRepository.save(session);
+
+        var jwt = jwtService.generateToken(user, jti);
         return new LoginResponse(user.getId(), jwt);
     }
 }

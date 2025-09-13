@@ -126,7 +126,7 @@ class ProblemDetailWebTest {
                 "password", "wrongpass"
         );
 
-        Mockito.when(authService.login(Mockito.any()))
+        Mockito.when(authService.login(Mockito.any(), Mockito.any()))
                 .thenThrow(new BadCredentialsException("Bad creds"));
 
         mvc.perform(post("/api/auth/login")
@@ -146,7 +146,7 @@ class ProblemDetailWebTest {
                 "password", "12345678"
         );
 
-        Mockito.when(authService.register(Mockito.any()))
+        Mockito.when(authService.register(Mockito.any(), Mockito.any()))
                 .thenThrow(new DataIntegrityViolationException("duplicate"));
 
         mvc.perform(post("/api/auth/register")

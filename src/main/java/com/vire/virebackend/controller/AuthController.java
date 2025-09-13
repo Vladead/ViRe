@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +40,9 @@ public class AuthController {
             }
     )
     @PostMapping("register")
-    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
         log.info("Registration attempt: email={}", request.email());
-        var response = authService.register(request);
+        var response = authService.register(request, http);
         log.info("Registration success: id={}", response.id());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -54,9 +55,9 @@ public class AuthController {
             }
     )
     @PostMapping("login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
         log.info("Login attempt: email={}", request.email());
-        var response = authService.login(request);
+        var response = authService.login(request, http);
         log.info("Login success: id={}", response.id());
         return ResponseEntity.ok(response);
     }

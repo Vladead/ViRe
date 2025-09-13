@@ -24,9 +24,10 @@ public class JwtService {
         return Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(User user) {
+    public String generateToken(User user, UUID jti) {
         return Jwts.builder()
                 .subject(user.getId().toString())
+                .id(jti.toString())
                 .claim("roles", user.getRoles().stream().map(Role::getName).toList())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.expiration().toMillis()))
@@ -56,5 +57,9 @@ public class JwtService {
 
     public Boolean isTokenExpired(String token) {
         return extractAllClaims(token).getExpiration().before(new Date());
+    }
+
+    public UUID extractJti(String token) {
+        return UUID.fromString(extractAllClaims(token).getId());
     }
 }
