@@ -1,5 +1,6 @@
 package com.vire.virebackend.security.filter;
 
+import com.vire.virebackend.repository.SessionRepository;
 import com.vire.virebackend.repository.UserRepository;
 import com.vire.virebackend.security.CustomUserDetails;
 import com.vire.virebackend.security.JwtService;
@@ -25,6 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final SessionRepository sessionRepository;
 
     @Override
     protected void doFilterInternal(
@@ -42,6 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             var userId = jwtService.extractUserId(jwt);
+            var jti = jwtService.extractJti(jwt);
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 var user = userRepository.findById(userId)
@@ -49,6 +52,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         });
 
                 if (jwtService.isTokenValid(jwt, user)) {
+                    // Ensure server-side session is active for this jti
+                    sessionRepository.findByJtiAndIsActive(jti, true)
+                            .orElseThrow(() -> new AuthenticationException("Session inactive") {
+
+                            });
+
                     var userDetails = new CustomUserDetails(user);
 
                     var authToken = new UsernamePasswordAuthenticationToken(
