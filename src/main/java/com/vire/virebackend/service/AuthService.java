@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,5 +95,42 @@ public class AuthService {
 
         var jwt = jwtService.generateToken(user, jti);
         return new LoginResponse(user.getId(), jwt);
+    }
+
+    @Transactional
+    public void logout(String authHeader) {
+        if (authHeader == null) return;
+
+        var parts = authHeader.trim().split("\\s+", 2);
+        if (parts.length != 2 || !parts[0].equalsIgnoreCase("Bearer")) return;
+
+        var token = parts[1].trim();
+        if (token.isEmpty()) return;
+
+        final UUID jti;
+        try {
+            jti = jwtService.extractJti(token);
+        } catch (Exception e) {
+            return;
+        }
+
+        sessionRepository.findByJtiAndIsActive(jti, true).ifPresent(session -> {
+            session.setIsActive(false);
+            sessionRepository.save(session);
+        });
+    }
+
+    @Transactional
+    public void logoutAll(Authentication authentication) {
+        var principal = (CustomUserDetails) authentication.getPrincipal();
+        var userId = principal.getUser().getId();
+
+        var activeSessions = sessionRepository.findAllByUserIdAndIsActiveTrue(userId);
+        if (!activeSessions.isEmpty()) {
+            for (var s : activeSessions) {
+                s.setIsActive(false);
+            }
+            sessionRepository.saveAll(activeSessions);
+        }
     }
 }

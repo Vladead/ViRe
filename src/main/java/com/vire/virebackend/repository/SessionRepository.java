@@ -16,4 +16,6 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     Optional<Session> findByIdAndUserId(UUID id, UUID userId);
 
     Optional<Session> findByJtiAndIsActive(UUID jti, boolean isActive);
+
+    List<Session> findAllByUserIdAndIsActiveTrue(UUID userId);
 }
