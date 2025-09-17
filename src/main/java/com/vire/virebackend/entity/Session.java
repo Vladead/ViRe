@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -31,4 +32,13 @@ public class Session extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+
+    @Column(name = "jti", nullable = false, unique = true)
+    private UUID jti;
+
+    @Column(name = "user_agent")
+    private String userAgent;
+
+    @Column(name = "last_activity_at")
+    private LocalDateTime lastActivityAt;
 }

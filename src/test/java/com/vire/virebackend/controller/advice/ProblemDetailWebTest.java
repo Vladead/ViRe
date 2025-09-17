@@ -2,6 +2,7 @@ package com.vire.virebackend.controller.advice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vire.virebackend.config.CorsProperties;
+import com.vire.virebackend.config.SessionProperties;
 import com.vire.virebackend.controller.AuthController;
 import com.vire.virebackend.controller.UserController;
 import com.vire.virebackend.entity.Role;
@@ -9,13 +10,16 @@ import com.vire.virebackend.entity.User;
 import com.vire.virebackend.problem.ProblemFactory;
 import com.vire.virebackend.problem.ProblemProperties;
 import com.vire.virebackend.problem.ProblemTypeResolver;
+import com.vire.virebackend.repository.SessionRepository;
 import com.vire.virebackend.repository.UserRepository;
 import com.vire.virebackend.security.JwtService;
 import com.vire.virebackend.security.SecurityConfig;
+import com.vire.virebackend.security.SessionActivityTracker;
 import com.vire.virebackend.security.filter.JwtAuthenticationFilter;
 import com.vire.virebackend.security.filter.MdcLoggingFilter;
 import com.vire.virebackend.security.handler.SecurityProblemHandlers;
 import com.vire.virebackend.service.AuthService;
+import com.vire.virebackend.service.UserPlanService;
 import com.vire.virebackend.service.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
@@ -71,7 +75,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "jwt.secret=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "jwt.expiration=1h",
-        "spring.mvc.problemdetails.enabled=true"
+        "spring.mvc.problemdetails.enabled=true",
+        "session.activity-update-threshold=5m"
 })
 class ProblemDetailWebTest {
 
@@ -89,6 +94,15 @@ class ProblemDetailWebTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    SessionRepository sessionRepository;
+
+    @Autowired
+    SessionActivityTracker sessionActivityTracker;
+
+    @Autowired
+    SessionProperties sessionProperties;
 
     @Test
     void register_invalidPayload_returns400_problemDetail() throws Exception {
@@ -126,7 +140,7 @@ class ProblemDetailWebTest {
                 "password", "wrongpass"
         );
 
-        Mockito.when(authService.login(Mockito.any()))
+        Mockito.when(authService.login(Mockito.any(), Mockito.any()))
                 .thenThrow(new BadCredentialsException("Bad creds"));
 
         mvc.perform(post("/api/auth/login")
@@ -146,7 +160,7 @@ class ProblemDetailWebTest {
                 "password", "12345678"
         );
 
-        Mockito.when(authService.register(Mockito.any()))
+        Mockito.when(authService.register(Mockito.any(), Mockito.any()))
                 .thenThrow(new DataIntegrityViolationException("duplicate"));
 
         mvc.perform(post("/api/auth/register")
@@ -162,6 +176,8 @@ class ProblemDetailWebTest {
         var token = "valid_jwt_token";
 
         Mockito.when(jwtService.extractUserId(token)).thenReturn(userId);
+        var jti = UUID.randomUUID();
+        Mockito.when(jwtService.extractJti(token)).thenReturn(jti);
 
         var user = User.builder()
                 .username("john")
@@ -173,6 +189,8 @@ class ProblemDetailWebTest {
         user.getRoles().add(role);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
+        Mockito.when(sessionRepository.findByJtiAndIsActive(jti, true)).thenReturn(java.util.Optional.of(new com.vire.virebackend.entity.Session()));
+        Mockito.when(sessionActivityTracker.shouldUpdate(Mockito.eq(jti), Mockito.any())).thenReturn(false);
 
         mvc.perform(get("/api/user/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -229,6 +247,8 @@ class ProblemDetailWebTest {
         var token = "valid_jwt_token";
 
         Mockito.when(jwtService.extractUserId(token)).thenReturn(userId);
+        var jti = UUID.randomUUID();
+        Mockito.when(jwtService.extractJti(token)).thenReturn(jti);
         var user = User.builder()
                 .username("john")
                 .email("john@example.com")
@@ -239,6 +259,8 @@ class ProblemDetailWebTest {
         user.getRoles().add(role);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         Mockito.when(jwtService.isTokenValid(token, user)).thenReturn(true);
+        Mockito.when(sessionRepository.findByJtiAndIsActive(jti, true)).thenReturn(java.util.Optional.of(new com.vire.virebackend.entity.Session()));
+        Mockito.when(sessionActivityTracker.shouldUpdate(Mockito.eq(jti), Mockito.any())).thenReturn(false);
 
         mvc.perform(get("/api/user/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -321,26 +343,51 @@ class ProblemDetailWebTest {
         }
 
         @Bean
-        com.vire.virebackend.service.UserPlanService userPlanService() {
-            return Mockito.mock(com.vire.virebackend.service.UserPlanService.class);
+        UserPlanService userPlanService() {
+            return Mockito.mock(UserPlanService.class);
         }
 
         @Bean
-        com.vire.virebackend.security.JwtService jwtService() {
+        JwtService jwtService() {
             return Mockito.mock(JwtService.class);
         }
 
         @Bean
-        com.vire.virebackend.repository.UserRepository userRepository() {
+        UserRepository userRepository() {
             return Mockito.mock(UserRepository.class);
+        }
+
+        @Bean
+        SessionRepository sessionRepository() {
+            return Mockito.mock(SessionRepository.class);
+        }
+
+        @Bean
+        SessionActivityTracker sessionActivityTracker() {
+            return Mockito.mock(SessionActivityTracker.class);
+        }
+
+        @Bean
+        SessionProperties sessionProperties() {
+            // вернуть реальный бин со значением, чтобы прошла валидация @ConfigurationProperties
+            return new SessionProperties(java.time.Duration.ofMinutes(5));
         }
 
         @Bean
         JwtAuthenticationFilter jwtAuthenticationFilter(
                 JwtService jwtService,
-                UserRepository userRepository
+                UserRepository userRepository,
+                SessionRepository sessionRepository,
+                SessionActivityTracker sessionActivityTracker,
+                SessionProperties sessionProperties
         ) {
-            return new JwtAuthenticationFilter(jwtService, userRepository);
+            return new JwtAuthenticationFilter(
+                    jwtService,
+                    userRepository,
+                    sessionRepository,
+                    sessionActivityTracker,
+                    sessionProperties
+            );
         }
 
         @Bean

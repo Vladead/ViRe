@@ -53,6 +53,9 @@ management:
 problem:
   base-uri: https://vire.dev/problems/
 
+session:
+  activity-update-threshold: 5m
+
 springdoc:
   swagger-ui:
     display-request-duration: true

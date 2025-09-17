@@ -29,3 +29,6 @@ databaseChangeLog:
   - include:
       file: 10-create-user-plans-table.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 11-jti-user-agent-sessions.yaml
+      relativeToChangelogFile: true

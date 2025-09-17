@@ -1,5 +1,6 @@
 package com.vire.virebackend.service;
 
+import com.vire.virebackend.config.JwtProperties;
 import com.vire.virebackend.dto.session.CreateSessionRequest;
 import com.vire.virebackend.dto.session.SessionDto;
 import com.vire.virebackend.entity.Session;
@@ -24,6 +25,7 @@ public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final JwtProperties jwtProperties;
 
     @Transactional
     public SessionDto createSession(Authentication auth, CreateSessionRequest request, HttpServletRequest http) {
@@ -40,7 +42,7 @@ public class SessionService {
                 .user(user)
                 .deviceName(deviceName)
                 .ip(ip)
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .expiresAt(LocalDateTime.now().plus(jwtProperties.expiration()))
                 .isActive(true)
                 .build();
 
