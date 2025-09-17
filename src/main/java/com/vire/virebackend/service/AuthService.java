@@ -1,5 +1,6 @@
 package com.vire.virebackend.service;
 
+import com.vire.virebackend.config.JwtProperties;
 import com.vire.virebackend.dto.auth.LoginRequest;
 import com.vire.virebackend.dto.auth.LoginResponse;
 import com.vire.virebackend.dto.auth.RegisterRequest;
@@ -33,6 +34,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
     private final SessionRepository sessionRepository;
+    private final JwtProperties jwtProperties;
 
     @Transactional
     public RegisterResponse register(RegisterRequest request, HttpServletRequest http) {
@@ -59,7 +61,7 @@ public class AuthService {
                 .ip(http.getRemoteAddr())
                 .deviceName("Unknown device") // todo: determine by User-Agent
                 .lastActivityAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .expiresAt(LocalDateTime.now().plus(jwtProperties.expiration()))
                 .build();
 
         sessionRepository.save(session);
@@ -88,7 +90,7 @@ public class AuthService {
                 .ip(http.getRemoteAddr())
                 .deviceName("Unknown device") // todo: determine by User-Agent
                 .lastActivityAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(30))
+                .expiresAt(LocalDateTime.now().plus(jwtProperties.expiration()))
                 .build();
 
         sessionRepository.save(session);

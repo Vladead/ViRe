@@ -57,9 +57,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         });
 
                 if (jwtService.isTokenValid(jwt, user)) {
-                    // Ensure server-side session is active for this jti
-                    sessionRepository.findByJtiAndIsActive(jti, true)
+                    // Ensure server-side session is active and not expired for this jti
+                    var session = sessionRepository.findByJtiAndIsActive(jti, true)
                             .orElseThrow(() -> new AuthenticationException("Session inactive") {});
+
+                    if (session.getExpiresAt() != null && session.getExpiresAt().isBefore(LocalDateTime.now())) {
+                        throw new AuthenticationException("Session expired") {
+                        };
+                    }
 
                     if (sessionActivityTracker.shouldUpdate(jti, sessionProperties.activityUpdateThreshold())) {
                         sessionRepository.findByJtiAndIsActive(jti, true).ifPresent(s -> {
