@@ -1,21 +1,26 @@
 package com.vire.virebackend.controller;
 
+import com.vire.virebackend.dto.PageResponse;
+import com.vire.virebackend.dto.admin.UserSummaryDto;
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.dto.plan.UpdatePlanRequest;
-import com.vire.virebackend.dto.user.UserDto;
+import com.vire.virebackend.mapper.PageResponseMapper;
+import com.vire.virebackend.service.AdminService;
 import com.vire.virebackend.service.PlanService;
-import com.vire.virebackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,13 +30,18 @@ import java.util.UUID;
 @SecurityRequirement(name = "bearerAuth")
 public class AdminController {
 
-    private final UserService userService;
     private final PlanService planService;
+    private final AdminService adminService;
 
-    @Operation(summary = "List all users (admin)")
+    @Operation(summary = "List users (paginated, createdAt DESC by default)")
     @GetMapping("users")
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public PageResponse<UserSummaryDto> listUsers(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable,
+            HttpServletRequest request
+    ) {
+        var page = adminService.list(pageable);
+        return PageResponseMapper.toResponse(page, request);
     }
 
     @Operation(summary = "Create a new plan")
@@ -56,4 +66,5 @@ public class AdminController {
     ) {
         return ResponseEntity.ok(planService.updatePlan(request, id));
     }
+
 }

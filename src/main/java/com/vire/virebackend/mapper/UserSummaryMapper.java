@@ -9,7 +9,7 @@ public final class UserSummaryMapper {
     private UserSummaryMapper() {
     }
 
-    public static UserSummaryDto UserSummaryDto(User user) {
+    public static UserSummaryDto toDto(User user) {
         return UserSummaryDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
