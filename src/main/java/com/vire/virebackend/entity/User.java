@@ -1,18 +1,13 @@
 package com.vire.virebackend.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
-import lombok.*;
 
 @Entity
 @Getter
@@ -43,6 +38,8 @@ public class User extends BaseEntity {
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    @BatchSize(size = 100)
     @JoinTable(
         name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_user_roles_user")),
