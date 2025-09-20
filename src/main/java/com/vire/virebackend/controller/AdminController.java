@@ -2,6 +2,7 @@ package com.vire.virebackend.controller;
 
 import com.vire.virebackend.dto.PageResponse;
 import com.vire.virebackend.dto.admin.user.UserSummaryDto;
+import com.vire.virebackend.dto.admin.user.UserSummarySubscriptionSessionDto;
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.dto.plan.UpdatePlanRequest;
@@ -42,6 +43,12 @@ public class AdminController {
     ) {
         var page = adminService.listUsers(pageable);
         return PageResponseMapper.toResponse(page, request);
+    }
+
+    @Operation(summary = "User profile (basic info, roles, active sessions, subscription summary)")
+    @GetMapping("users/{id}")
+    public ResponseEntity<UserSummarySubscriptionSessionDto> getUserProfile(@PathVariable UUID id) {
+        return ResponseEntity.ok(adminService.getProfile(id));
     }
 
     @Operation(summary = "Create a new plan")

@@ -13,7 +13,7 @@ public final class UserSummarySubscriptionSessionMapper {
     private UserSummarySubscriptionSessionMapper() {
     }
 
-    public UserSummarySubscriptionSessionDto toDto(
+    public static UserSummarySubscriptionSessionDto toDto(
             User user,
             List<SessionSummaryDto> sessions,
             List<UserPlanSummaryDto> userPlans

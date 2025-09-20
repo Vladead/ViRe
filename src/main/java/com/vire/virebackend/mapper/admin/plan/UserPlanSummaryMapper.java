@@ -8,7 +8,7 @@ public final class UserPlanSummaryMapper {
     private UserPlanSummaryMapper() {
     }
 
-    public UserPlanSummaryDto toDto(UserPlan userPlan) {
+    public static UserPlanSummaryDto toDto(UserPlan userPlan) {
         return UserPlanSummaryDto.builder()
                 .id(userPlan.getId())
                 .planId(userPlan.getPlan().getId())
