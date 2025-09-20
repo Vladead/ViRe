@@ -1,6 +1,6 @@
-package com.vire.virebackend.mapper;
+package com.vire.virebackend.mapper.admin.user;
 
-import com.vire.virebackend.dto.admin.UserSummaryDto;
+import com.vire.virebackend.dto.admin.user.UserSummaryDto;
 import com.vire.virebackend.entity.Role;
 import com.vire.virebackend.entity.User;
 

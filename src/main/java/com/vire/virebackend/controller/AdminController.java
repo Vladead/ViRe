@@ -1,7 +1,7 @@
 package com.vire.virebackend.controller;
 
 import com.vire.virebackend.dto.PageResponse;
-import com.vire.virebackend.dto.admin.UserSummaryDto;
+import com.vire.virebackend.dto.admin.user.UserSummaryDto;
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.dto.plan.UpdatePlanRequest;
@@ -40,7 +40,7 @@ public class AdminController {
             Pageable pageable,
             HttpServletRequest request
     ) {
-        var page = adminService.list(pageable);
+        var page = adminService.listUsers(pageable);
         return PageResponseMapper.toResponse(page, request);
     }
 

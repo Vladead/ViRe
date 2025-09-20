@@ -1,7 +1,7 @@
 package com.vire.virebackend.service;
 
-import com.vire.virebackend.dto.admin.UserSummaryDto;
-import com.vire.virebackend.mapper.UserSummaryMapper;
+import com.vire.virebackend.dto.admin.user.UserSummaryDto;
+import com.vire.virebackend.mapper.admin.user.UserSummaryMapper;
 import com.vire.virebackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,7 @@ public class AdminService {
 
     private final UserRepository userRepository;
 
-    public Page<UserSummaryDto> list(Pageable pageable) {
+    public Page<UserSummaryDto> listUsers(Pageable pageable) {
         var effective = normalize(pageable);
         var page = userRepository.findAll(effective);
 
@@ -30,4 +30,6 @@ public class AdminService {
                 : pageable.getSort();
         return PageRequest.of(pageable.getPageNumber(), size, sort);
     }
+
+
 }
