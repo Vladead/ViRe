@@ -55,6 +55,12 @@ public class GlobalExceptionHandler {
         return problemFactory.badRequest("Malformed or invalid request");
     }
 
+    // 400 invalid arguments in service layer
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException exception) {
+        return problemFactory.badRequest(exception.getMessage());
+    }
+
     // 401 authentication failures outside Security Filter (e.g. wrong password)
     @ExceptionHandler(AuthenticationException.class)
     public ProblemDetail handleAuth(AuthenticationException exception, HttpServletResponse response) {
