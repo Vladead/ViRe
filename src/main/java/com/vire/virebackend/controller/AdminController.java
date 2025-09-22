@@ -1,12 +1,14 @@
 package com.vire.virebackend.controller;
 
 import com.vire.virebackend.dto.PageResponse;
+import com.vire.virebackend.dto.admin.user.UpdateUserRolesRequest;
 import com.vire.virebackend.dto.admin.user.UserSummaryDto;
 import com.vire.virebackend.dto.admin.user.UserSummarySubscriptionSessionDto;
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.dto.plan.UpdatePlanRequest;
 import com.vire.virebackend.mapper.PageResponseMapper;
+import com.vire.virebackend.security.CustomUserDetails;
 import com.vire.virebackend.service.AdminService;
 import com.vire.virebackend.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -49,6 +52,17 @@ public class AdminController {
     @GetMapping("users/{id}")
     public ResponseEntity<UserSummarySubscriptionSessionDto> getUserProfile(@PathVariable UUID id) {
         return ResponseEntity.ok(adminService.getProfile(id));
+    }
+
+    @Operation(summary = "Update user roles (whitelist via DB: USER, ADMIN). Idempotent")
+    @PutMapping("users/{id}/roles")
+    public ResponseEntity<UserSummaryDto> updateUserRoles(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRolesRequest request,
+            @AuthenticationPrincipal CustomUserDetails current
+    ) {
+        var updated = adminService.updateUserRoles(id, request.roles(), current.getUser().getId());
+        return ResponseEntity.ok(updated);
     }
 
     @Operation(summary = "Create a new plan")
