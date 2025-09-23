@@ -3,6 +3,7 @@ package com.vire.virebackend.service;
 import com.vire.virebackend.dto.admin.session.SessionSummaryDto;
 import com.vire.virebackend.dto.admin.user.UserSummaryDto;
 import com.vire.virebackend.dto.admin.user.UserSummarySubscriptionSessionDto;
+import com.vire.virebackend.dto.session.DeactivateSessionResponse;
 import com.vire.virebackend.entity.Role;
 import com.vire.virebackend.mapper.admin.plan.UserPlanSummaryMapper;
 import com.vire.virebackend.mapper.admin.session.SessionSummaryMapper;
@@ -112,5 +113,46 @@ public class AdminService {
         user.getRoles().addAll(new HashSet<>(roles));
 
         return UserSummaryMapper.toDto(user);
+    }
+
+    @Transactional
+    public DeactivateSessionResponse deactivateSession(UUID userId, UUID sessionId) {
+        var session = sessionRepository.findById(sessionId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        var wasActive = session.getIsActive();
+        if (wasActive) {
+            session.setIsActive(false);
+        }
+
+        return DeactivateSessionResponse.builder()
+                .id(sessionId)
+                .wasActive(wasActive)
+                .build();
+    }
+
+    @Transactional
+    public List<DeactivateSessionResponse> logoutAllUserSessions(UUID userId) {
+        var allSessions = sessionRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+
+        var responses = new ArrayList<DeactivateSessionResponse>(allSessions.size());
+        var changed = false;
+        for (var s : allSessions) {
+            var wasActive = s.getIsActive();
+            if (wasActive) {
+                s.setIsActive(false);
+                changed = true;
+            }
+            responses.add(
+                    DeactivateSessionResponse.builder()
+                            .id(s.getId())
+                            .wasActive(wasActive)
+                            .build()
+            );
+        }
+        if (changed) {
+            sessionRepository.saveAll(allSessions);
+        }
+        return responses;
     }
 }
