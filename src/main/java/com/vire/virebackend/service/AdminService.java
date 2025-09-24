@@ -117,7 +117,7 @@ public class AdminService {
 
     @Transactional
     public DeactivateSessionResponse deactivateSession(UUID userId, UUID sessionId) {
-        var session = sessionRepository.findById(sessionId)
+        var session = sessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(EntityNotFoundException::new);
 
         var wasActive = session.getIsActive();
