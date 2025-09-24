@@ -7,6 +7,7 @@ import com.vire.virebackend.dto.admin.user.UserSummarySubscriptionSessionDto;
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.dto.plan.UpdatePlanRequest;
+import com.vire.virebackend.dto.session.DeactivateSessionResponse;
 import com.vire.virebackend.mapper.PageResponseMapper;
 import com.vire.virebackend.security.CustomUserDetails;
 import com.vire.virebackend.service.AdminService;
@@ -25,6 +26,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -65,6 +67,25 @@ public class AdminController {
         return ResponseEntity.ok(updated);
     }
 
+    @Operation(summary = "Terminate a specific user session")
+    @DeleteMapping("users/{id}/sessions/{sessionId}")
+    public ResponseEntity<DeactivateSessionResponse> terminateUserSession(
+            @PathVariable UUID id,
+            @PathVariable UUID sessionId
+    ) {
+        var response = adminService.deactivateSession(id, sessionId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Logout user from all devices")
+    @PostMapping("users/{id}/logout-all")
+    public ResponseEntity<List<DeactivateSessionResponse>> logoutAllUserSessions(
+            @PathVariable UUID id
+    ) {
+        var response = adminService.logoutAllUserSessions(id);
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "Create a new plan")
     @PostMapping("plans")
     public ResponseEntity<PlanDto> create(@Valid @RequestBody CreatePlanRequest request) {
@@ -87,5 +108,4 @@ public class AdminController {
     ) {
         return ResponseEntity.ok(planService.updatePlan(request, id));
     }
-
 }
