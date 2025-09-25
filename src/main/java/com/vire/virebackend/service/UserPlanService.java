@@ -8,11 +8,13 @@ import com.vire.virebackend.repository.UserPlanRepository;
 import com.vire.virebackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,6 +30,9 @@ public class UserPlanService {
         var plan = planRepository.findById(planId)
                 .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
 
+        var active = userPlanRepository.findFirstByUserIdAndEndDateAfterOrderByEndDateDesc(userId, LocalDateTime.now());
+        if (active.isPresent())
+            throw new DataIntegrityViolationException("Active subscription already exists");
         var userPlan = UserPlan.builder()
                 .user(userRepository.getReferenceById(userId))
                 .plan(plan)
@@ -42,5 +47,11 @@ public class UserPlanService {
     public List<UserPlanDto> userSubscriptions(UUID userId) {
         return userPlanRepository.findByUserIdOrderByStartDateDesc(userId)
                 .stream().map(UserPlanMapper::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<UserPlanDto> activeUserSubscription(UUID userId) {
+        return userPlanRepository.findFirstByUserIdAndEndDateAfterOrderByEndDateDesc(userId, LocalDateTime.now())
+                .map(UserPlanMapper::toDto);
     }
 }
