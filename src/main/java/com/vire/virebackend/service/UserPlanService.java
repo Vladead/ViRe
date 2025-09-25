@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -46,5 +47,11 @@ public class UserPlanService {
     public List<UserPlanDto> userSubscriptions(UUID userId) {
         return userPlanRepository.findByUserIdOrderByStartDateDesc(userId)
                 .stream().map(UserPlanMapper::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<UserPlanDto> activeUserSubscription(UUID userId) {
+        return userPlanRepository.findFirstByUserIdAndEndDateAfterOrderByEndDateDesc(userId, LocalDateTime.now())
+                .map(UserPlanMapper::toDto);
     }
 }

@@ -50,4 +50,15 @@ public class UserController {
     public ResponseEntity<List<UserPlanDto>> getCurrentUserPlans(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(userPlanService.userSubscriptions(userDetails.getUser().getId()));
     }
+
+    @Operation(summary = "Get current user active plan")
+    @GetMapping("plans/active")
+    public ResponseEntity<UserPlanDto> getCurrentUserActivePlan(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        var activePlan = userPlanService.activeUserSubscription(userDetails.getUser().getId());
+
+        if (activePlan.isPresent())
+            return ResponseEntity.ok(activePlan.get());
+        else
+            return ResponseEntity.noContent().build();
+    }
 }
