@@ -7,6 +7,7 @@ import com.vire.virebackend.dto.admin.user.UserSummarySubscriptionSessionDto;
 import com.vire.virebackend.dto.plan.CreatePlanRequest;
 import com.vire.virebackend.dto.plan.PlanDto;
 import com.vire.virebackend.dto.plan.UpdatePlanRequest;
+import com.vire.virebackend.dto.plan.UserPlanDto;
 import com.vire.virebackend.dto.session.DeactivateSessionResponse;
 import com.vire.virebackend.mapper.PageResponseMapper;
 import com.vire.virebackend.security.CustomUserDetails;
@@ -42,8 +43,7 @@ public class AdminController {
     @Operation(summary = "List users (paginated, createdAt DESC by default)")
     @GetMapping("users")
     public PageResponse<UserSummaryDto> listUsers(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request
     ) {
         var page = adminService.listUsers(pageable);
@@ -65,6 +65,17 @@ public class AdminController {
     ) {
         var updated = adminService.updateUserRoles(id, request.roles(), current.getUser().getId());
         return ResponseEntity.ok(updated);
+    }
+
+    @Operation(summary = "List user plan history")
+    @GetMapping("users/{id}/plans")
+    public PageResponse<UserPlanDto> listUserPlans(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @PathVariable UUID id,
+            HttpServletRequest request
+    ) {
+        var page = adminService.listUserPlans(id, pageable);
+        return PageResponseMapper.toResponse(page, request);
     }
 
     @Operation(summary = "Terminate a specific user session")
