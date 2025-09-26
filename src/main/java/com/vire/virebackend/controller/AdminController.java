@@ -108,4 +108,10 @@ public class AdminController {
     ) {
         return ResponseEntity.ok(planService.updatePlan(request, id));
     }
+
+    @Operation(summary = "List all plans")
+    @GetMapping("plans")
+    public List<PlanDto> getAllPlans() {
+        return planService.getAllPlans();
+    }
 }
