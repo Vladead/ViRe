@@ -3,8 +3,10 @@ package com.vire.virebackend.service;
 import com.vire.virebackend.dto.admin.session.SessionSummaryDto;
 import com.vire.virebackend.dto.admin.user.UserSummaryDto;
 import com.vire.virebackend.dto.admin.user.UserSummarySubscriptionSessionDto;
+import com.vire.virebackend.dto.plan.UserPlanDto;
 import com.vire.virebackend.dto.session.DeactivateSessionResponse;
 import com.vire.virebackend.entity.Role;
+import com.vire.virebackend.mapper.UserPlanMapper;
 import com.vire.virebackend.mapper.admin.plan.UserPlanSummaryMapper;
 import com.vire.virebackend.mapper.admin.session.SessionSummaryMapper;
 import com.vire.virebackend.mapper.admin.user.UserSummaryMapper;
@@ -154,5 +156,11 @@ public class AdminService {
             sessionRepository.saveAll(allSessions);
         }
         return responses;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserPlanDto> listUserPlans(UUID userId, Pageable pageable) {
+        var userPlans = userPlanRepository.findByUserIdOrderByStartDateDesc(userId, pageable);
+        return userPlans.map(UserPlanMapper::toDto);
     }
 }
