@@ -32,3 +32,6 @@ databaseChangeLog:
   - include:
       file: 11-jti-user-agent-sessions.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 12-create-nodes-table.yaml
+      relativeToChangelogFile: true

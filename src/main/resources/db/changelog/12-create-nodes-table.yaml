@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 12-create-nodes-table
+      author: vladead
+      changes:
+        - createTable:
+            tableName: nodes
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: region
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: host
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(32)
+                  defaultValue: INACTIVE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_heartbeat_at
+                  type: timestamp
+              - column:
+                  name: api_key_hash
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+        - addUniqueConstraint:
+            tableName: nodes
+            columnNames: name
+            constraintName: uq_nodes_name
+        - addUniqueConstraint:
+            tableName: nodes
+            columnNames: host
+            constraintName: uq_nodes_host
+        - createIndex:
+            tableName: nodes
+            indexName: idx_nodes_last_heartbeat_at
+            columns:
+              - column:
+                  name: last_heartbeat_at
+      rollback:
+        - dropTable:
+            tableName: nodes
+            cascadeConstraints: true
