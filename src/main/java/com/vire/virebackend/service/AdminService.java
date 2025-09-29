@@ -17,6 +17,7 @@ import com.vire.virebackend.repository.UserPlanRepository;
 import com.vire.virebackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AdminService {
 
     private final UserRepository userRepository;
@@ -113,6 +115,9 @@ public class AdminService {
 
         user.getRoles().clear();
         user.getRoles().addAll(new HashSet<>(roles));
+
+        log.info("Admin roles update: actorUserId={}, targetUserId={}, newRoles={}",
+                actorUserId, targetUserId, requested);
 
         return UserSummaryMapper.toDto(user);
     }
