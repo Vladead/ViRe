@@ -123,7 +123,7 @@ public class AdminService {
     }
 
     @Transactional
-    public DeactivateSessionResponse deactivateSession(UUID userId, UUID sessionId) {
+    public DeactivateSessionResponse deactivateSession(UUID userId, UUID sessionId, UUID actorUserId) {
         var session = sessionRepository.findByIdAndUserId(sessionId, userId)
                 .orElseThrow(EntityNotFoundException::new);
 
@@ -132,6 +132,9 @@ public class AdminService {
             session.setIsActive(false);
         }
 
+        log.info("Admin session termination: actorUserId={}, targetUserId={}, sessionId={}, wasActive={}",
+                actorUserId, userId, sessionId, wasActive);
+
         return DeactivateSessionResponse.builder()
                 .id(sessionId)
                 .wasActive(wasActive)
@@ -139,7 +142,7 @@ public class AdminService {
     }
 
     @Transactional
-    public List<DeactivateSessionResponse> logoutAllUserSessions(UUID userId) {
+    public List<DeactivateSessionResponse> logoutAllUserSessions(UUID userId, UUID actorUserId) {
         var allSessions = sessionRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
 
         var responses = new ArrayList<DeactivateSessionResponse>(allSessions.size());
@@ -160,6 +163,10 @@ public class AdminService {
         if (changed) {
             sessionRepository.saveAll(allSessions);
         }
+
+        log.info("Admin logout-all: actorUserId={}, targetUserId={}, totalSessions={}, changed={}",
+                actorUserId, userId, allSessions.size(), changed);
+
         return responses;
     }
 
