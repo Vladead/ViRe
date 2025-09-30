@@ -82,18 +82,20 @@ public class AdminController {
     @DeleteMapping("users/{id}/sessions/{sessionId}")
     public ResponseEntity<DeactivateSessionResponse> terminateUserSession(
             @PathVariable UUID id,
-            @PathVariable UUID sessionId
+            @PathVariable UUID sessionId,
+            @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
-        var response = adminService.deactivateSession(id, sessionId);
+        var response = adminService.deactivateSession(id, sessionId, currentUser.getUser().getId());
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Logout user from all devices")
     @PostMapping("users/{id}/logout-all")
     public ResponseEntity<List<DeactivateSessionResponse>> logoutAllUserSessions(
-            @PathVariable UUID id
+            @PathVariable UUID id,
+            @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
-        var response = adminService.logoutAllUserSessions(id);
+        var response = adminService.logoutAllUserSessions(id, currentUser.getUser().getId());
         return ResponseEntity.ok(response);
     }
 
