@@ -98,6 +98,7 @@ Swagger UI: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/
    - Authenticated: business operations require JWT.
    - Admin: administrative operations live under /api/admin and require ADMIN.
 - Plans: a plan has name, price, and durationDays. Subscribing creates a UserPlan with start/end dates.
+- User can have only one active plan at a time
 
 For concrete endpoints and schemas, use Swagger UI.
 
