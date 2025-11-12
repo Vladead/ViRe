@@ -50,23 +50,7 @@ public class AuthService {
 
         userRepository.save(user);
 
-        var jti = UUID.randomUUID();
-        var userAgent = http.getHeader("User-Agent");
-
-        var session = Session.builder()
-                .user(user)
-                .jti(jti)
-                .isActive(true)
-                .userAgent(userAgent != null ? userAgent : "")
-                .ip(http.getRemoteAddr())
-                .deviceName("Unknown device") // todo: determine by User-Agent
-                .lastActivityAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plus(jwtProperties.expiration()))
-                .build();
-
-        sessionRepository.save(session);
-
-        var token = jwtService.generateToken(user, jti);
+        var token = createSessionAndJwt(http, user);
         return new RegisterResponse(user.getId(), token);
     }
 
@@ -79,23 +63,7 @@ public class AuthService {
         var userDetails = (CustomUserDetails) authentication.getPrincipal();
         var user = userDetails.getUser();
 
-        var jti = UUID.randomUUID();
-        var userAgent = http.getHeader("User-Agent");
-
-        var session = Session.builder()
-                .user(user)
-                .jti(jti)
-                .isActive(true)
-                .userAgent(userAgent != null ? userAgent : "")
-                .ip(http.getRemoteAddr())
-                .deviceName("Unknown device") // todo: determine by User-Agent
-                .lastActivityAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plus(jwtProperties.expiration()))
-                .build();
-
-        sessionRepository.save(session);
-
-        var jwt = jwtService.generateToken(user, jti);
+        var jwt = createSessionAndJwt(http, user);
         return new LoginResponse(user.getId(), jwt);
     }
 
@@ -134,5 +102,25 @@ public class AuthService {
             }
             sessionRepository.saveAll(activeSessions);
         }
+    }
+
+    private String createSessionAndJwt(HttpServletRequest http, User user) {
+        var jti = UUID.randomUUID();
+        var userAgent = http.getHeader("User-Agent");
+
+        var session = Session.builder()
+                .user(user)
+                .jti(jti)
+                .isActive(true)
+                .userAgent(userAgent != null ? userAgent : "")
+                .ip(http.getRemoteAddr())
+                .deviceName("Unknown device") // todo: determine by User-Agent
+                .lastActivityAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plus(jwtProperties.expiration()))
+                .build();
+
+        sessionRepository.save(session);
+
+        return jwtService.generateToken(user, jti);
     }
 }
